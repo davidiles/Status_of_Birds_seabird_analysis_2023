@@ -1,1 +1,2 @@
-*.Rhistory
+from_collaborators/
+*.RData

@@ -2,26 +2,12 @@
     model {
   
   # --------------------------------
-  # Fixed effects and observation
+  # Colony-level intercepts (note that GAM structure includes intercept for colony 1)
   # --------------------------------
   
-  # Colony-level intercepts
   C[1] <- 0
   for(k in 2:ncolony){
     C[k] ~ dnorm(0,0.01) 
-  }
-  
-  for (k in 1:ncolony){
-    sdnoise[k] ~ dunif(0,2)
-    taunoise[k] <- pow(sdnoise[k],-2)
-  }
-  
-
-  for (i in 1:ncounts) { 
-    count[i] ~ dpois(mu[i])                                 # response  
-    mu[i] <-  exp(eta1[i])                                  # expected response
-    eta1[i] ~ dnorm(eta[i],taunoise[colony[i]])             # overdispersion
-    eta[i] <- C[colony[i]] + yeareffect[year[i],colony[i]]  # process model - colony intercept and year-smoother
   }
   
   # --------------------------------
@@ -58,27 +44,29 @@
     } # k
   } # j
   
+  # --------------------------------
+  # Combine pieces
+  # --------------------------------
+  
+  # Residual overdispersion
+  sdnoise ~ dunif(0,2)
+  taunoise <- pow(sdnoise,-2)
+  
   for (i in 1:nyearspred){
     for(k in 1:ncolony){
       yeareffect[i,k] <- sum(X.part[i,1:nknots,k])
+      eta[i,k] <- C[k] + yeareffect[i,k]
+      log_mu[i,k] ~ dnorm(eta[i,k],taunoise)
     } # k
   } # i
   
   # --------------------------------
-  # Derived parameters: predictions of annual expected counts
+  # Likelihood
   # --------------------------------
   
-  for (i in 1:nyearspred){
-    for(j in 1:nknots){
-      X.partpred[i,j] <- B.X[j]*(X[i,j])
-    } #j
-    
-    x.gampred[i] <- sum(X.partpred[i,1:nknots])
-    
-    for(k in 1:ncolony){
-      etapred[i,k] <- exp(C[k] + yeareffect[i,k])
-    }
-    
-  } #i
+  for (i in 1:ncounts) { 
+    count[i] ~ dpois(exp(log_mu[year[i],colony[i]]))                              
+  }
+  
 }
     
