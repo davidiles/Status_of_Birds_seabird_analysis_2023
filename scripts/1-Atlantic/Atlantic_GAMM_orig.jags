@@ -11,14 +11,20 @@
     C[k] ~ dnorm(0,0.01) 
   }
   
-  sdnoise ~ dunif(0,2)
-  taunoise <- pow(sdnoise,-2)
-  
+  noise_prior_sd <- 0.5
+  noise_prior_var <- noise_prior_sd * noise_prior_sd
+
+  for (k in 1:ncolony){
+  	
+  	sdnoise[k] ~ dlnorm(log(0.2) - 0.5*noise_prior_var,1/noise_prior_var)
+  	taunoise[k] <- pow(sdnoise[k],-2)
+  }
+
   for (i in 1:ncounts) { 
-    count[i] ~ dpois(mu[i])                                 # response  
-    mu[i] <-  exp(eta1[i])                                  # expected response
-    eta1[i] ~ dnorm(eta[i],taunoise)                        # overdispersion
-    eta[i] <- C[colony[i]] + yeareffect[year[i],colony[i]]  # process model - colony intercept and year-smoother
+    count[i] ~ dpois(mu[i])                                    # response
+    mu[i] <-  exp(eta_tau[i])                                  # expected response
+    eta_tau[i] ~ dnorm(eta[i],taunoise[colony[i]])              # overdispersion
+    eta[i] <- C[colony[i]] + yeareffect[year[i],colony[i]]     # process model - colony intercept and year-smoother
   }
   
   # --------------------------------
@@ -73,9 +79,11 @@
     x.gampred[i] <- sum(X.partpred[i,1:nknots])
     
     for(k in 1:ncolony){
-      etapred[i,k] <- exp(C[k] + yeareffect[i,k])
+      etapred[i,k] <- exp(C[k] + yeareffect[i,k] + 0.5*pow(sdnoise[k],2))
+
     }
     
   } #i
 }
+    
     

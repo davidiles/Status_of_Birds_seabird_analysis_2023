@@ -2,31 +2,20 @@
     model {
   
   # --------------------------------
-  # Fixed effects and observation
+  # Colony-level intercepts (note that GAM structure includes intercept for colony 1)
   # --------------------------------
   
-  # Colony-level intercepts
   C[1] <- 0
   for(k in 2:ncolony){
     C[k] ~ dnorm(0,0.01) 
-  }
-  
-  sdnoise ~ dunif(0,2)
-  taunoise <- pow(sdnoise,-2)
-  
-  for (i in 1:ncounts) { 
-    count[i] ~ dpois(mu[i])                                 # response  
-    mu[i] <-  exp(eta1[i])                                  # expected response
-    eta1[i] ~ dnorm(eta[i],taunoise)                        # overdispersion
-    eta[i] <- C[colony[i]] + yeareffect[year[i],colony[i]]  # process model - colony intercept and year-smoother
   }
   
   # --------------------------------
   # GAM smooth
   # --------------------------------
   
-  taubeta <- pow(sdbeta,-2) # prior on precision of gam coefficients
   sdbeta ~ dunif(0,5)
+  taubeta <- pow(sdbeta,-2) # prior on precision of gam coefficients
   
   nk1 <- nknots-1
   nk2 <- ((nknots*2)-2)
@@ -55,27 +44,46 @@
     } # k
   } # j
   
+  # --------------------------------
+  # Combine pieces
+  # --------------------------------
+  
+  noise_prior_sd <- 0.5
+  noise_prior_var <- noise_prior_sd * noise_prior_sd
+
+  for (k in 1:ncolony){
+  	
+  	sdnoise[k] ~ dlnorm(log(0.2) - 0.5*noise_prior_var,1/noise_prior_var)
+  	taunoise[k] <- pow(sdnoise[k],-2)
+  }
+
   for (i in 1:nyearspred){
     for(k in 1:ncolony){
+
       yeareffect[i,k] <- sum(X.part[i,1:nknots,k])
+      eta[i,k] <- C[k] + yeareffect[i,k]
+      log_mu[i,k] ~ dnorm(eta[i,k],taunoise[k])
+
     } # k
   } # i
   
+  # --------------------------------
+  # Likelihood
+  # --------------------------------
+  
+  for (i in 1:ncounts) { 
+    count[i] ~ dpois(exp(log_mu[year[i],colony[i]]))                              
+  }
+
   # --------------------------------
   # Derived parameters: predictions of annual expected counts
   # --------------------------------
   
   for (i in 1:nyearspred){
-    for(j in 1:nknots){
-      X.partpred[i,j] <- B.X[j]*(X[i,j])
-    } #j
-    
-    x.gampred[i] <- sum(X.partpred[i,1:nknots])
-    
     for(k in 1:ncolony){
-      etapred[i,k] <- exp(C[k] + yeareffect[i,k])
+      population_index[i,k] <- exp(C[k] + yeareffect[i,k] + 0.5*pow(sdnoise[k],2))
     }
-    
   } #i
+  
 }
     
