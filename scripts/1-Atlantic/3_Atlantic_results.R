@@ -67,7 +67,7 @@ CustomTheme <- theme_update(legend.key = element_rect(colour = NA),
 # Read in data
 # ------------------------------------------------
 
-atl = read_xlsx("data/ATLANTIC_QC_AR_DATA_2023_updated.xlsx", sheet = 1)
+atl = read_xlsx("data/Atlantic/ATLANTIC_QC_AR_DATA_2023_updated.xlsx", sheet = 1)
 
 # Convert pairs to individuals
 atl$Count[atl$Count_Type == "Pairs"] = atl$Count[atl$Count_Type == "Pairs"]*2
@@ -201,10 +201,10 @@ for (spp in atl_species){
   #add the predicted LOESS values back to the original dataframe with a new column name
   pop_index_regional$LOESS_index <-exp(predict(LOESS) )
   
-  #ggplot()+
+  # ggplot()+
   #       geom_point(data = pop_index_regional, aes(x = Year, y = index))+
   #       geom_line(data = pop_index_regional, aes(x = Year, y = LOESS_index))
-  
+
   # ----------------------------------------------
   # Calculate percent change relative to a baseline year for each species
   # ----------------------------------------------
