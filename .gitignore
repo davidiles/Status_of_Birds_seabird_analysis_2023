@@ -1,0 +1,4 @@
+from_collaborators/
+data/
+output/
+*.RData

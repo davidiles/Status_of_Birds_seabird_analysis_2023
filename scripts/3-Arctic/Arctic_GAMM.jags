@@ -1,0 +1,89 @@
+
+    model {
+  
+  # --------------------------------
+  # Colony-level intercepts (note that GAM structure includes intercept for colony 1)
+  # --------------------------------
+  
+  C[1] <- 0
+  for(k in 2:ncolony){
+    C[k] ~ dnorm(0,0.01) 
+  }
+  
+  # --------------------------------
+  # GAM smooth
+  # --------------------------------
+  
+  sdbeta ~ dunif(0,5)
+  taubeta <- pow(sdbeta,-2) # prior on precision of gam coefficients
+  
+  nk1 <- nknots-1
+  nk2 <- ((nknots*2)-2)
+  B.X[1] ~ dnorm(0,0.01)
+  
+  ## prior for s(year)... 
+  K1 <- S1[1:nk1,1:nk1] * lambda[1]  + S1[1:nk1,(nknots:nk2)] * lambda[2]
+  B.X[(2:nknots)] ~ dmnorm(zero[(2:nknots)],K1) 
+  
+  #K1 is the prior on the precisions of the mnorm B.X values (mean GAM parameters for a species)
+  ## smoothing parameter
+  
+  for(i in 1:2) {
+    lambda[i] ~ dgamma(0.05,0.005)
+    rho[i] <- log(lambda[i])
+  } # i
+  
+  for(j in 1:nknots){ # Computation of GAM components
+    
+    for(k in 1:ncolony){
+      beta.X[k,j] ~ dnorm(B.X[j],taubeta)
+      for ( i in 1:nyearspred ){
+        X.part[i,j,k] <- beta.X[k,j]*(X[i,j])
+      } # i
+      
+    } # k
+  } # j
+  
+  # --------------------------------
+  # Combine pieces
+  # --------------------------------
+  
+  noise_prior_sd <- 0.2
+  noise_prior_var <- noise_prior_sd * noise_prior_sd
+
+  for (k in 1:ncolony){
+  	
+  	sdnoise[k] ~ dlnorm(log(0.2) - 0.5*noise_prior_var,1/noise_prior_var)
+  	taunoise[k] <- pow(sdnoise[k],-2)
+  }
+
+  for (i in 1:nyearspred){
+    for(k in 1:ncolony){
+
+      yeareffect[i,k] <- sum(X.part[i,1:nknots,k])
+      eta[i,k] <- C[k] + yeareffect[i,k]
+      log_mu[i,k] ~ dnorm(eta[i,k],taunoise[k])
+
+    } # k
+  } # i
+  
+  # --------------------------------
+  # Likelihood
+  # --------------------------------
+  
+  for (i in 1:ncounts) { 
+    count[i] ~ dpois(exp(log_mu[year[i],colony[i]]))                              
+  }
+
+  # --------------------------------
+  # Derived parameters: predictions of annual expected counts
+  # --------------------------------
+  
+  for (i in 1:nyearspred){
+    for(k in 1:ncolony){
+      population_index[i,k] <- exp(C[k] + yeareffect[i,k] + 0.5*pow(sdnoise[k],2))
+    }
+  } #i
+  
+}
+    
