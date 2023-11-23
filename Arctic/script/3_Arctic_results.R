@@ -34,7 +34,7 @@ thisPath <- function() {
 
 dirname <- thisPath()
 setwd(dirname)
-setwd("../../")
+setwd("../")
 
 `%!in%` <- Negate(`%in%`)
 
@@ -63,11 +63,11 @@ CustomTheme <- theme_update(legend.key = element_rect(colour = NA),
 # Prepare species codes / labels / generation lengths
 # ------------------------------------------------
 
-GenLength <- read_xlsx("data/Bird_et_al_2020_AppendixS4_GenLength.xlsx") %>%
+GenLength <- read_xlsx("../other_files/Bird_et_al_2020_AppendixS4_GenLength.xlsx") %>%
   select('Scientific name','GenLength')
-SOBC_species <- read_xlsx("from_collaborators/SOBC_Template_From_Birds_Canada/SOCB_species.xlsx")
+SOBC_species <- read_xlsx("../other_files/SOCB_species.xlsx")
 
-seabird_codes_names <- read_xlsx("data/seabird_names_2023.xlsx") %>%
+seabird_codes_names <- read_xlsx("../other_files/seabird_names_2023.xlsx") %>%
   left_join(SOBC_species) %>%
   left_join(GenLength, by = c('scientific_name' = 'Scientific name')) %>%
   mutate(GenLength = round(GenLength))
@@ -84,7 +84,7 @@ spp_vec <- c("NOFU","TBMU","BLKI")
 for (spp in spp_vec){
   
   # Load model results
-  file = paste0("output/Arctic/model_results/",spp,".RData")
+  file = paste0("output/model_results/",spp,".RData")
   if(!file.exists(file)) next 
   load(file)
   
@@ -421,7 +421,7 @@ for (spp in spp_vec){
     scale_y_continuous(labels = comma, trans = "log10")+
     ggtitle(seabird_codes_names$english_name[seabird_codes_names$Species == spp])
   
-  png(paste0("output/Arctic/model_results/figures/",spp,"_colony_trajectories.png"), width = 12, height = 6, units = "in", res = 600)
+  png(paste0("output/model_results/figures/",spp,"_colony_trajectories.png"), width = 12, height = 6, units = "in", res = 600)
   print(colony_plot_freeaxis)
   dev.off()
   
@@ -460,7 +460,7 @@ for (spp in spp_vec){
     ylab("Index of Abundance")+
     ggtitle(seabird_codes_names$english_name[seabird_codes_names$Species == spp])
   
-  png(paste0("output/Arctic/model_results/figures/",spp,"_regional.png"), width = 6, height = 4, units = "in", res = 600)
+  png(paste0("output/model_results/figures/",spp,"_regional.png"), width = 6, height = 4, units = "in", res = 600)
   print(regional_plot)
   dev.off()
   
@@ -476,13 +476,13 @@ Trend_Estimates$precision_cat[which((Trend_Estimates$upper_ci - Trend_Estimates$
 # Output trend/change estimates
 # ------------------------------------------------
 
-write.csv(Trend_Estimates, file = "output/Arctic/model_results/tables/SOCB_2023_Arctic_Trends.csv", row.names = FALSE)
+write.csv(Trend_Estimates, file = "output/model_results/tables/SOCB_2023_Arctic_Trends.csv", row.names = FALSE)
 
 # ------------------------------------------------
 # Output annual regional indices
 # ------------------------------------------------
 
-write.csv(Annual_Indices, file = "output/Arctic/model_results/tables/SOCB_2023_Arctic_Indices.csv", row.names = FALSE)
+write.csv(Annual_Indices, file = "output/model_results/tables/SOCB_2023_Arctic_Indices.csv", row.names = FALSE)
 
 # ------------------------------------------------
 # Summary plots
@@ -504,7 +504,7 @@ allspecies_trends_highquality_plot <- ggplot(data = subset(Trend_Estimates,perio
   ggtitle("Full time series")+
   coord_cartesian(xlim=lim)
 
-png(paste0("output/Arctic/model_results/figures/0_allspecies_trends_highquality.png"), width = 6, height = 6, units = "in", res = 600)
+png(paste0("output/model_results/figures/0_allspecies_trends_highquality.png"), width = 6, height = 6, units = "in", res = 600)
 print(allspecies_trends_highquality_plot)
 dev.off()
 
@@ -519,7 +519,7 @@ allspecies_trends_3Gen_plot <- ggplot(data = subset(Trend_Estimates,period == "3
   ggtitle("3Gen-Recent")+
   coord_cartesian(xlim=lim)
 
-png(paste0("output/Arctic/model_results/figures/0_allspecies_trends_3Gen.png"), width = 6, height = 6, units = "in", res = 600)
+png(paste0("output/model_results/figures/0_allspecies_trends_3Gen.png"), width = 6, height = 6, units = "in", res = 600)
 print(allspecies_trends_3Gen_plot)
 dev.off()
 
@@ -534,6 +534,6 @@ allspecies_trends_10yr_plot <- ggplot(data = subset(Trend_Estimates,period == "1
   ggtitle("10-years")+
   coord_cartesian(xlim=lim)
 
-png(paste0("output/Arctic/model_results/figures/0_allspecies_trends_10yr.png"), width = 6, height = 6, units = "in", res = 600)
+png(paste0("output/model_results/figures/0_allspecies_trends_10yr.png"), width = 6, height = 6, units = "in", res = 600)
 print(allspecies_trends_10yr_plot)
 dev.off()

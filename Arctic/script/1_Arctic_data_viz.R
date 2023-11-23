@@ -34,7 +34,7 @@ thisPath <- function() {
 
 dirname <- thisPath()
 setwd(dirname)
-setwd("../../")
+setwd("../")
 `%!in%` <- Negate(`%in%`)
 
 # ------------------------------------------------
@@ -63,16 +63,16 @@ CustomTheme <- theme_update(legend.key = element_rect(colour = NA),
 # ------------------------------------------------
 
 # Arctic database, updated by DTI on 2023-11-05
-dat1 = read_xlsx("data/Arctic/ArcticSeabirdColonyDatabase_edited.xlsx", sheet = 1)
+dat1 = read_xlsx("data/ArcticSeabirdColonyDatabase_edited.xlsx", sheet = 1)
 
 # Replicate plot data from Sarah Gutowsky and Tony Gaston (at Prince Leopold Island)
-dat2 = read_xlsx("data/Arctic/Arctic_PrinceLeopoldIsland_edited.xlsx", sheet = 3) %>%
+dat2 = read_xlsx("data/Arctic_PrinceLeopoldIsland_edited.xlsx", sheet = 3) %>%
   
   # Make consistent with Arctic seabird database colony names
   mutate(Colony_Name = "PRINCE LEOPOLD IS") 
 
 # Data compiled by Adam Smith in 2012
-dat3 = read_xlsx("data/Arctic/ArcticSeabird_SOCB2012_edited.xlsx", sheet = 1)
+dat3 = read_xlsx("data/ArcticSeabird_SOCB2012_edited.xlsx", sheet = 1)
 
 # ********************
 # NOTES:

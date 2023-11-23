@@ -7,8 +7,34 @@ if (any(!my_packs %in% installed.packages()[, 'Package'])) {install.packages(my_
 lapply(my_packs, require, character.only = TRUE)
 
 rm(list=ls())
-theme_set(theme_bw())
-setwd("D:/Working_Files/1_Projects/Seabirds/Status_of_Birds_seabird_analysis_2022/")
+
+# ------------------------------------------------
+# Set working directory
+# ------------------------------------------------
+
+stub <- function() {}
+thisPath <- function() {
+  cmdArgs <- commandArgs(trailingOnly = FALSE)
+  if (length(grep("^-f$", cmdArgs)) > 0) {
+    # R console option
+    normalizePath(dirname(cmdArgs[grep("^-f", cmdArgs) + 1]))[1]
+  } else if (length(grep("^--file=", cmdArgs)) > 0) {
+    # Rscript/R console option
+    scriptPath <- normalizePath(dirname(sub("^--file=", "", cmdArgs[grep("^--file=", cmdArgs)])))[1]
+  } else if (Sys.getenv("RSTUDIO") == "1") {
+    # RStudio
+    dirname(rstudioapi::getSourceEditorContext()$path)
+  } else if (is.null(attr(stub, "srcref")) == FALSE) {
+    # 'source'd via R console
+    dirname(normalizePath(attr(attr(stub, "srcref"), "srcfile")$filename))
+  } else {
+    stop("Cannot find file path")
+  }
+}
+
+dirname <- thisPath()
+setwd(dirname)
+setwd("../")
 `%!in%` <- Negate(`%in%`)
 
 # ------------------------------------------------

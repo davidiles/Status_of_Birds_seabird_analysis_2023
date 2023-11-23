@@ -34,35 +34,14 @@ thisPath <- function() {
 
 dirname <- thisPath()
 setwd(dirname)
-setwd("../../")
+setwd("../")
 `%!in%` <- Negate(`%in%`)
-
-# ------------------------------------------------
-# ggplot theme
-# ------------------------------------------------
-
-CustomTheme <- theme_set(theme_bw())
-CustomTheme <- theme_update(legend.key = element_rect(colour = NA), 
-                            legend.key.height = unit(1.2, "line"),
-                            panel.grid.major = element_line(colour = 'transparent'),
-                            panel.grid.minor = element_line(colour = 'transparent'),
-                            panel.border = element_rect(linetype = "solid",
-                                                        colour = "black",
-                                                        size = 1, fill = NA),
-                            axis.line = element_line(colour = "black"),
-                            strip.text = element_text(size = 12, colour = "black"),
-                            strip.background = element_rect(colour = "black",
-                                                            fill = "lightblue2",
-                                                            linetype = "solid"),
-                            axis.title.y = element_text(margin = margin(0,10,0,0)),
-                            axis.title.x = element_text(margin = margin(10,0,0,0)),
-                            panel.background = element_rect(fill = "white"))
 
 # --------------------
 # Complete 'island total' counts
 # --------------------
 
-ccounts = read_xlsx("data/Arctic/ArcticSeabirdColonyDatabase_edited.xlsx", sheet = 1) %>%
+ccounts = read_xlsx("data/ArcticSeabirdColonyDatabase_edited.xlsx", sheet = 1) %>%
   rename(Species = species, Colony_Name = location,Year = year, Count = individuals) %>%
   mutate(Count_Type = "Individuals") %>%
   select(Species,Colony_Name,Year,Count)
@@ -73,7 +52,7 @@ ccounts$Count <- as.numeric(ccounts$Count)
 # Plot-based counts
 # --------------------
 
-pcounts = read_xlsx("data/Arctic/Arctic_PrinceLeopoldIsland_edited.xlsx", sheet = 3) %>%
+pcounts = read_xlsx("data/Arctic_PrinceLeopoldIsland_edited.xlsx", sheet = 3) %>%
   # Make consistent with Arctic seabird database colony names
   mutate(Colony_Name = "PRINCE LEOPOLD IS") %>%
   rename(Count = Total_Size_of_Colony,
@@ -88,7 +67,7 @@ spp_vec <- c("NOFU","TBMU","BLKI")
 
 for (spp in spp_vec){
   
-  #if (file.exists(paste0("output/Arctic/model_results/",spp,".RData"))) next
+  #if (file.exists(paste0("output/model_results/",spp,".RData"))) next
   print(spp)
   spdat_ccount = spdat_pcount = NULL
   
@@ -181,7 +160,7 @@ for (spp in spp_vec){
   form = as.formula(paste("count ~ s(yrs,k =",nknots,")"))
   gamprep = jagam(formula = form,
                   data = preddat,
-                  file = "scripts/3-Arctic/tempgam.txt",
+                  file = "script/tempgam.txt",
                   centred = T)
   
   # Package data into a list for JAGS
@@ -201,15 +180,15 @@ for (spp in spp_vec){
   out <- jags(data = jags_data,
               parameters.to.save = parameters.to.save,
               inits = NULL,
-              n.iter = 110000,
-              n.burnin = 10000,
-              n.thin = 100,
-              model.file = "scripts/3-Arctic/Arctic_GAMM.jags",
+              n.iter = 1100000,
+              n.burnin = 100000,
+              n.thin = 1000,
+              model.file = "script/Arctic_GAMM.jags",
               n.chains = 3,
               parallel = TRUE)
   
   # Save results for each species
-  save.image(paste0("output/Arctic/model_results/",spp,".RData"))
+  save.image(paste0("output/model_results/",spp,".RData"))
   
 }
 

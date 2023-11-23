@@ -34,7 +34,7 @@ thisPath <- function() {
 
 dirname <- thisPath()
 setwd(dirname)
-setwd("../../")
+setwd("../")
 `%!in%` <- Negate(`%in%`)
 
 # ------------------------------------------------
@@ -57,7 +57,7 @@ atl_summary = atl %>%
             max_count = max(Count),
             mean_count = mean(Count))
 
-write.csv(atl_summary, "output/Atlantic/dataviz/0_Atlantic_summary.csv",row.names = FALSE)
+write.csv(atl_summary, "output/Atlantic_summary.csv",row.names = FALSE)
 
 atl_species = unique(atl$Species) %>% sort()
 
@@ -68,7 +68,7 @@ atl_species = unique(atl$Species) %>% sort()
 for (spp in atl_species){
   
   print(spp)
-  #if (file.exists(paste0("output/Atlantic/model_results/",spp,".RData"))) next
+  #if (file.exists(paste0("output/model_results/",spp,".RData"))) next
   
   # Extract relevant data
   spdat = subset(atl, Species == spp)
@@ -131,7 +131,7 @@ for (spp in atl_species){
   form = as.formula(paste("count ~ s(yrs,k =",nknots,")"))
   gamprep = jagam(formula = form,
                   data = preddat,
-                  file = "scripts/1-Atlantic/tempgam.txt",
+                  file = "script/tempgam.txt",
                   centred = T)
   
   # Package data into a list for JAGS
@@ -154,12 +154,12 @@ for (spp in atl_species){
               n.iter = 1100000,
               n.burnin = 100000,
               n.thin = 1000,
-              model.file = "scripts/1-Atlantic/Atlantic_GAMM.jags",
+              model.file = "script/Atlantic_GAMM.jags",
               n.chains = 3,
               parallel = TRUE) # 12 min
   
   # Save results for each species
-  save.image(paste0("output/Atlantic/model_results/",spp,".RData"))
+  save.image(paste0("output/model_results/",spp,".RData"))
   
 }
 
