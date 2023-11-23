@@ -1,6 +1,9 @@
+# Custom analysis summary/figures for Laurie Wilson
+
 # ------------------------------------------------
 # Load/install packages and set graphical themes / working directory
 # ------------------------------------------------
+
 my_packs = c('tidyverse','readxl','RColorBrewer','viridis','jagsUI','mgcv','ggrepel','scales')
 
 if (any(!my_packs %in% installed.packages()[, 'Package'])) {install.packages(my_packs[which(!my_packs %in% installed.packages()[, 'Package'])],dependencies = TRUE)}
@@ -34,7 +37,7 @@ thisPath <- function() {
 
 dirname <- thisPath()
 setwd(dirname)
-setwd("../../")
+setwd("../")
 
 `%!in%` <- Negate(`%in%`)
 
@@ -71,11 +74,11 @@ spp_vec = unique(ccounts$Species)
 # Prepare species codes / labels / generation lengths
 # ------------------------------------------------
 
-GenLength <- read_xlsx("data/Bird_et_al_2020_AppendixS4_GenLength.xlsx") %>%
+GenLength <- read_xlsx("../other_files/Bird_et_al_2020_AppendixS4_GenLength.xlsx") %>%
   select('Scientific name','GenLength')
-SOBC_species <- read_xlsx("from_collaborators/SOBC_Template_From_Birds_Canada/SOCB_species.xlsx")
+SOBC_species <- read_xlsx("../other_files/SOCB_species.xlsx")
 
-seabird_codes_names <- read_xlsx("data/seabird_names_2023.xlsx") %>%
+seabird_codes_names <- read_xlsx("../other_files/seabird_names_2023.xlsx") %>%
   left_join(SOBC_species) %>%
   left_join(GenLength, by = c('scientific_name' = 'Scientific name')) %>%
   mutate(GenLength = round(GenLength))
@@ -92,7 +95,7 @@ spp_vec = c("ANMU","CAAU","RHAU","TUPU")
 for (spp in spp_vec){
   
   # Load model results
-  file = paste0("output/Pacific/model_results/",spp,".RData")
+  file = paste0("output/model_results/",spp,".RData")
   if(!file.exists(file)) next 
   load(file)
   
@@ -230,7 +233,7 @@ for (spp in spp_vec){
   
   #print(colony_plot_freeaxis)
   
-  png(paste0("output/Pacific/model_results/figures/",spp,"_Plot_Surveys.png"), width = 8, height = 6, units = "in", res = 600)
+  png(paste0("output/model_results/figures/",spp,"_Plot_Surveys.png"), width = 8, height = 6, units = "in", res = 600)
   print(colony_plot_freeaxis)
   dev.off()
   
@@ -377,7 +380,7 @@ for (spp in spp_vec){
     }
   }
   
-  write.csv(Colony_Trends, file = paste0("output/Pacific/model_results/tables/Colony_Trends_",spp,".csv"), row.names = FALSE)
+  write.csv(Colony_Trends, file = paste0("output/model_results/tables/Colony_Trends_",spp,".csv"), row.names = FALSE)
   
   # ------------------------------------------------
   # Regional summary
@@ -430,12 +433,12 @@ for (spp in spp_vec){
     ggtitle(seabird_codes_names$english_name[seabird_codes_names$Species == spp])
   regional_plot
   
-  png(paste0("output/Pacific/model_results/figures/",spp,"_colony_Plots_For_Laurie.png"), width = 6, height = 4, units = "in", res = 600)
+  png(paste0("output/model_results/figures/",spp,"_colony_Plots_For_Laurie.png"), width = 6, height = 4, units = "in", res = 600)
   print(regional_plot)
   dev.off()
   
 }
 
 # Save annual colony-level indices
-write.csv(Colony_Indices, file = "output/Pacific/model_results/tables/SOCB_2023_Pacific_Indices_colony.csv", row.names = FALSE)
+write.csv(Colony_Indices, file = "output/model_results/tables/SOCB_2023_Pacific_Indices_colony.csv", row.names = FALSE)
 
