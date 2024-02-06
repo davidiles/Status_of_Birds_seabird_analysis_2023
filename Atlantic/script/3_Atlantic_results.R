@@ -34,7 +34,7 @@ thisPath <- function() {
 
 dirname <- thisPath()
 setwd(dirname)
-setwd("../../")
+setwd("../")
 
 `%!in%` <- Negate(`%in%`)
 
@@ -67,7 +67,7 @@ CustomTheme <- theme_update(legend.key = element_rect(colour = NA),
 # Read in data
 # ------------------------------------------------
 
-atl = read_xlsx("data/Atlantic/ATLANTIC_QC_AR_DATA_2023_updated.xlsx", sheet = 1)
+atl = read_xlsx("data/ATLANTIC_QC_AR_DATA_2023_updated.xlsx", sheet = 1)
 
 # Convert pairs to individuals
 atl$Count[atl$Count_Type == "Pairs"] = atl$Count[atl$Count_Type == "Pairs"]*2
@@ -81,11 +81,11 @@ atl_species = unique(atl$Species)
 # Prepare species codes / labels / generation lengths
 # ------------------------------------------------
 
-GenLength <- read_xlsx("data/Bird_et_al_2020_AppendixS4_GenLength.xlsx") %>%
+GenLength <- read_xlsx("../other_files/Bird_et_al_2020_AppendixS4_GenLength.xlsx") %>%
   select('Scientific name','GenLength')
-SOBC_species <- read_xlsx("from_collaborators/SOBC_Template_From_Birds_Canada/SOCB_species.xlsx")
+SOBC_species <- read_xlsx("../other_files/SOCB_species.xlsx")
 
-seabird_codes_names <- read_xlsx("data/seabird_names_2023.xlsx") %>%
+seabird_codes_names <- read_xlsx("../other_files/seabird_names_2023.xlsx") %>%
   left_join(SOBC_species) %>%
   left_join(GenLength, by = c('scientific_name' = 'Scientific name')) %>%
   mutate(GenLength = round(GenLength))
@@ -103,7 +103,7 @@ Annual_Indices <- data.frame()
 for (spp in atl_species){
   
   # Load model results
-  file = paste0("output/Atlantic/model_results/",spp,".RData")
+  file = paste0("output/model_results/",spp,".RData")
   if(!file.exists(file)) next 
   load(file)
   
@@ -166,10 +166,10 @@ for (spp in atl_species){
   
   N_summary_colony = fit_samples %>% 
     group_by(Colony_Name, Year) %>%
-    summarize(q050 = quantile(N_pred,0.025),
+    summarize(q025 = quantile(N_pred,0.025),
               q50 = quantile(N_pred,0.500),
               mean = mean(N_pred),
-              q950 = quantile(N_pred,0.975))
+              q975 = quantile(N_pred,0.975))
   
   N_summary_colony$regional <- "No"
   N_summary_colony$regional[N_summary_colony$Colony_Name %in% colonies_to_include_for_regional$Colony_Name] <- "Yes"
@@ -333,10 +333,10 @@ for (spp in atl_species){
   colony_plot_freeaxis = ggplot() +
     
     # Full time series
-    geom_ribbon(data = N_summary_colony, aes(x = Year, ymin = q050, ymax = q950), fill = "gray80",col = "transparent")+
+    geom_ribbon(data = N_summary_colony, aes(x = Year, ymin = q025, ymax = q975), fill = "gray80",col = "transparent")+
     geom_line(data = N_summary_colony, aes(x = Year, y = q50), col = "gray60")+
     
-    geom_ribbon(data = subset(N_summary_colony, Year >= first_year_for_summary & Year <= final_year_for_summary), aes(x = Year, ymin = q050, ymax = q950, fill = regional), col = "transparent")+
+    geom_ribbon(data = subset(N_summary_colony, Year >= first_year_for_summary & Year <= final_year_for_summary), aes(x = Year, ymin = q025, ymax = q975, fill = regional), col = "transparent")+
     geom_line(data = subset(N_summary_colony, Year >= first_year_for_summary & Year <= final_year_for_summary), aes(x = Year, y = q50, col = regional))+
     
     geom_point(data = spdat,aes(x = Year, y = Count))+
@@ -349,7 +349,7 @@ for (spp in atl_species){
     scale_y_continuous(labels = comma, trans = "log10")+
     ggtitle(seabird_codes_names$english_name[seabird_codes_names$Species == spp])
   
-  png(paste0("output/Atlantic/model_results/figures/",spp,"_colony_trajectories.png"), width = 12, height = 6, units = "in", res = 600)
+  png(paste0("output/model_results/figures/",spp,"_colony_trajectories.png"), width = 12, height = 6, units = "in", res = 600)
   print(colony_plot_freeaxis)
   dev.off()
   
@@ -388,7 +388,7 @@ for (spp in atl_species){
     ylab("Index of Abundance")+
     ggtitle(seabird_codes_names$english_name[seabird_codes_names$Species == spp])
   
-  png(paste0("output/Atlantic/model_results/figures/",spp,"_regional.png"), width = 6, height = 4, units = "in", res = 600)
+  png(paste0("output/model_results/figures/",spp,"_regional.png"), width = 6, height = 4, units = "in", res = 600)
   print(regional_plot)
   dev.off()
   
@@ -403,13 +403,13 @@ Trend_Estimates$precision_cat[which((Trend_Estimates$upper_ci - Trend_Estimates$
 # Output trend/change estimates
 # ------------------------------------------------
 
-write.csv(Trend_Estimates, file = "output/Atlantic/model_results/tables/SOCB_2023_Atlantic_Trends.csv", row.names = FALSE)
+write.csv(Trend_Estimates, file = "output/model_results/tables/SOCB_2023_Atlantic_Trends.csv", row.names = FALSE)
 
 # ------------------------------------------------
 # Output annual regional indices
 # ------------------------------------------------
 
-write.csv(Annual_Indices, file = "output/Atlantic/model_results/tables/SOCB_2023_Atlantic_Indices.csv", row.names = FALSE)
+write.csv(Annual_Indices, file = "output/model_results/tables/SOCB_2023_Atlantic_Indices.csv", row.names = FALSE)
 
 # ------------------------------------------------
 # Summary plots
@@ -431,7 +431,7 @@ allspecies_trends_highquality_plot <- ggplot(data = subset(Trend_Estimates,perio
   ggtitle("Full time series")+
   coord_cartesian(xlim=lim)
 
-png(paste0("output/Atlantic/model_results/figures/0_allspecies_trends_highquality.png"), width = 6, height = 6, units = "in", res = 600)
+png(paste0("output/model_results/figures/0_allspecies_trends_highquality.png"), width = 6, height = 6, units = "in", res = 600)
 print(allspecies_trends_highquality_plot)
 dev.off()
 
@@ -446,7 +446,7 @@ allspecies_trends_3Gen_plot <- ggplot(data = subset(Trend_Estimates,period == "3
   ggtitle("3Gen-Recent")+
   coord_cartesian(xlim=lim)
 
-png(paste0("output/Atlantic/model_results/figures/0_allspecies_trends_3Gen.png"), width = 6, height = 6, units = "in", res = 600)
+png(paste0("output/model_results/figures/0_allspecies_trends_3Gen.png"), width = 6, height = 6, units = "in", res = 600)
 print(allspecies_trends_3Gen_plot)
 dev.off()
 
@@ -461,6 +461,6 @@ allspecies_trends_10yr_plot <- ggplot(data = subset(Trend_Estimates,period == "1
   ggtitle("10-years")+
   coord_cartesian(xlim=lim)
 
-png(paste0("output/Atlantic/model_results/figures/0_allspecies_trends_10yr.png"), width = 6, height = 6, units = "in", res = 600)
+png(paste0("output/model_results/figures/0_allspecies_trends_10yr.png"), width = 6, height = 6, units = "in", res = 600)
 print(allspecies_trends_10yr_plot)
 dev.off()
